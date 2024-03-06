@@ -61,7 +61,9 @@ numCountArray = {"0": f"{num0} times",
 print("This is the array of numbers", array)
 print()
 # You can either display it using this in different lines
+print("This is the count of each number in the array")
 for key in numCountArray.items():
     print(key)
+print()
 # or this on to print on the same line
 print("This is the count of each number in the array\n", numCountArray)
