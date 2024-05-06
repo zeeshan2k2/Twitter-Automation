@@ -1,45 +1,33 @@
-import pyspark
-
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, avg, sum
+from pyspark.sql.functions import col, avg
 
 # Create a SparkSession
 spark = SparkSession.builder \
-    .appName("GenreReviewsAnalysis") \
+    .appName("AveragePriceAnalysisForFictionGenre") \
     .getOrCreate()
 
 # Load the CSV file into a DataFrame
 df = spark.read.csv("/Users/zeeshanwaheed/Downloads/AmazonBooks-1.csv", header=True)
 
-# Assuming the column names are "Genre", "Reviews", "Rank", and "Years"
+# Assuming the column names are "Genre", "Price", "Rank", and "Year"
 genre_column = "Genre"
-reviews_column = "Reviews"
+price_column = "Price"
 rank_column = "Rank"
-years_column = "Years"
+year_column = "Year"
 
-# Define the genre to analyze
-genre_to_analyze = "fiction"  # Change to "non-fiction" if needed
+# Define the range of years for analysis
+start_year = 2009
+end_year = 2020
 
-# Filter the DataFrame based on the genre
-filtered_df = df.filter(col(genre_column) == genre_to_analyze)
+# Loop through each year within the range
+for year_to_analyze in range(start_year, end_year + 1):
+    # Filter the DataFrame to select only rows with "Fiction" genre and the specified year
+    fiction_year_df = df.filter((col(genre_column) == "Fiction") & (col(year_column) == str(year_to_analyze)))
 
-# Calculate the average and total number of reviews for top 10, 25, and 50 ranks
-top_10_avg_reviews = filtered_df.filter(col(rank_column) <= 10).select(avg(col(reviews_column))).collect()[0][0]
-top_10_total_reviews = filtered_df.filter(col(rank_column) <= 10).select(sum(col(reviews_column))).collect()[0][0]
-
-top_25_avg_reviews = filtered_df.filter(col(rank_column) <= 25).select(avg(col(reviews_column))).collect()[0][0]
-top_25_total_reviews = filtered_df.filter(col(rank_column) <= 25).select(sum(col(reviews_column))).collect()[0][0]
-
-top_50_avg_reviews = filtered_df.filter(col(rank_column) <= 50).select(avg(col(reviews_column))).collect()[0][0]
-top_50_total_reviews = filtered_df.filter(col(rank_column) <= 50).select(sum(col(reviews_column))).collect()[0][0]
-
-print(f"Genre: {genre_to_analyze}")
-print("Top 10 Average Reviews:", top_10_avg_reviews)
-print("Top 10 Total Reviews:", top_10_total_reviews)
-print("Top 25 Average Reviews:", top_25_avg_reviews)
-print("Top 25 Total Reviews:", top_25_total_reviews)
-print("Top 50 Average Reviews:", top_50_avg_reviews)
-print("Top 50 Total Reviews:", top_50_total_reviews)
+    # Calculate the average price for top 10, 25, and 50 ranks
+    for rank_limit in [10, 25, 50]:
+        avg_price = fiction_year_df.filter(col(rank_column) <= rank_limit).select(avg(col(price_column))).collect()[0][0]
+        print(f"Year: {year_to_analyze}, Top {rank_limit} Average Price for Fiction Genre: {avg_price}")
 
 # Stop the SparkSession
 spark.stop()
